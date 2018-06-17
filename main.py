@@ -4,7 +4,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from dataset import MyDataset, get_dataset, recover_image
 from model import Net, train, predict
-from attackers import FGSM
+from attackers import FGSM, BIM
 
 SEED = 1
 
@@ -28,9 +28,13 @@ loader_tr = DataLoader(MyDataset(X_tr, Y_tr), shuffle=True, **args['loader_tr_ar
 
 model = Net().to(device)
 optimizer = optim.SGD(model.parameters(), **args['optimizer_args'])
-train(model, device, loader_tr, optimizer, args['n_epoch'])
+# train(model, device, loader_tr, optimizer, args['n_epoch'])
+checkpoint = torch.load('checkpoint')
+model.load_state_dict(checkpoint['model_dict'])
+optimizer.load_state_dict(checkpoint['optimizer_dict'])
 
 attacker = FGSM(eps=0.15, clip_max=CLIP_MAX, clip_min=CLIP_MIN)
+# attacker = BIM(eps=0.15, eps_iter=0.01, n_iter=50, clip_max=CLIP_MAX, clip_min=CLIP_MIN)
 
 demo_idxs = [380, 46, 38, 142, 19, 15, 21, 41, 177, 9]
 X_te_cln = X_te[demo_idxs]
