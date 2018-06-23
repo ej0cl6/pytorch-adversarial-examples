@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from dataset import MyDataset, get_dataset, recover_image
+from dataset import MyDataset, get_dataset, recover_image, recover_noise
 from model import Net, train, predict
 from attackers import FGSM, BIM
 
@@ -28,13 +28,11 @@ loader_tr = DataLoader(MyDataset(X_tr, Y_tr), shuffle=True, **args['loader_tr_ar
 
 model = Net().to(device)
 optimizer = optim.SGD(model.parameters(), **args['optimizer_args'])
-# train(model, device, loader_tr, optimizer, args['n_epoch'])
-checkpoint = torch.load('checkpoint')
-model.load_state_dict(checkpoint['model_dict'])
-optimizer.load_state_dict(checkpoint['optimizer_dict'])
+train(model, device, loader_tr, optimizer, args['n_epoch'])
 
 attacker = FGSM(eps=0.15, clip_max=CLIP_MAX, clip_min=CLIP_MIN)
 # attacker = BIM(eps=0.15, eps_iter=0.01, n_iter=50, clip_max=CLIP_MAX, clip_min=CLIP_MIN)
+print('attacker: {}'.format(type(attacker).__name__))
 
 demo_idxs = [380, 46, 38, 142, 19, 15, 21, 41, 177, 9]
 X_te_cln = X_te[demo_idxs]
@@ -55,5 +53,6 @@ print('labels of clean images: {}'.format(P_cln.numpy()))
 print('labels of adversarial images: {}'.format(P_adv.numpy()))
 
 for i in range(10):
-    recover_image(X_te_cln.numpy()[i][0]).save('results/{}/{}_clean.png'.format(type(attacker).__name__, i))
+    recover_image(X_te_cln.numpy()[i][0]).save('results/Clean/{}.png'.format(i))
     recover_image(X_te_adv.numpy()[i][0]).save('results/{}/{}_adversarial.png'.format(type(attacker).__name__, i))
+    recover_noise(X_te_adv.numpy()[i][0]-X_te_cln.numpy()[i][0]).save('results/{}/{}_diff.png'.format(type(attacker).__name__, i))

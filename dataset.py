@@ -1,3 +1,4 @@
+import numpy as np
 from torchvision import datasets
 from torch.utils.data import Dataset
 from PIL import Image
@@ -32,4 +33,15 @@ def get_dataset():
 def recover_image(x):
     img = (x + 0.5)*255
     img = Image.fromarray(img).convert('RGB')
+    return img
+
+def recover_noise(x):
+    img = np.ones((x.shape[0], x.shape[1], 3))
+    img[x<0, 1] += x[x<0]
+    img[x<0, 2] += x[x<0]
+    img[x>0, 0] -= x[x>0]
+    img[x>0, 2] -= x[x>0]
+    img *= 255
+    img = img.astype('uint8')
+    img = Image.fromarray(img.astype('uint8'))
     return img
