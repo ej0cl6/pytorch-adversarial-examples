@@ -4,7 +4,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from dataset import MyDataset, get_dataset, recover_image, recover_noise
 from model import Net, train, predict
-from attackers import FGSM, BIM
+from attackers import FGSM, BIM, DeepFool
 
 SEED = 1
 
@@ -32,9 +32,10 @@ train(model, device, loader_tr, optimizer, args['n_epoch'])
 
 attacker = FGSM(eps=0.15, clip_max=CLIP_MAX, clip_min=CLIP_MIN)
 # attacker = BIM(eps=0.15, eps_iter=0.01, n_iter=50, clip_max=CLIP_MAX, clip_min=CLIP_MIN)
+# attacker = DeepFool(max_iter=50, clip_max=CLIP_MAX, clip_min=CLIP_MIN)
 print('attacker: {}'.format(type(attacker).__name__))
 
-demo_idxs = [380, 46, 38, 142, 19, 15, 21, 41, 177, 9]
+demo_idxs = [545, 107, 38, 142, 65, 15, 21, 171, 257, 20]
 X_te_cln = X_te[demo_idxs]
 Y_te_cln = Y_te[demo_idxs]
 X_te_adv = torch.zeros(X_te_cln.shape)
@@ -49,7 +50,7 @@ model.cuda()
 P_cln = predict(model, device, loader_te_cln)
 P_adv = predict(model, device, loader_te_adv)
 
-print('labels of clean images: {}'.format(P_cln.numpy()))
+print('labels of clean images:       {}'.format(P_cln.numpy()))
 print('labels of adversarial images: {}'.format(P_adv.numpy()))
 
 for i in range(10):
